@@ -4,7 +4,7 @@ import pandas as pd
 import os, json, shutil, random
 from translate_text import translate_text
 from transliterate_text import transliterate_text
-# from parse_transcript_phrases import process_audio_time, parse_phrases
+from parse_transcript_phrases import process_audio_time, parse_phrases
 # from text_analytics import text_analytics_main
 from sql_db import connect_database
 from dotenv import load_dotenv
@@ -59,8 +59,46 @@ def parse_transcript(uid,lang):
         trans_dict= {'call_id': call_id,
                     'caller_id': call_id.split('_')[1], 'agent_id': call_id.split('_')[2],
                     'call_timestamp': datetime.strptime(call_time[0] +' '+ call_time[1], '%y%m%d %H%M%S').strftime("%d-%m-%y %H:%M:%S"),
-                    'audio_language': call_id.split('_')[0],
                     'original_transcript': text_data,
                     'translated_transcript': trans_text.replace("'","''"),
                     'transliterated_transcript': translit_text.replace("'","''"),
                     'duration': json_dict['duration']}
+
+        trans_dict_list.append(trans_dict)
+
+    if len(trans_dict_list)>0:
+        trans_dict_df = pd.DataFrame(trans_dict_list)
+        trans_dict_df['duration_in_sec']= trans_dict_df['duration'].apply(lambda x: process_audio_time(x))
+        
+        print('updating call_details table...')
+        conn= connect_database()
+        cursor= conn.cursor()
+
+        for _, row in trans_dict_df.iterrows():
+            query= f''' INSERT INTO TBL_call_details (
+                            call_id, caller_id, Agent_id, audio_language, call_duration, original_transcript,
+                            translated_transcript, transliterated_transcript, call_timestamp, updation_timestamp)
+                        VALUES (
+                            '{row['call_id']}', '{row['caller_id']}', '{row['agent_id']}', '{lang}', '{row['duration_in_sec']}',
+                            '{row['original_transcript']}', '{row['translated_transcript'].replace("'","''")}', '{row['transliterated_transcript'].replace("'","''")}',
+                            '{row['call_timestamp']}', '{datetime.now().strftime("%d-%m-%y %H:%M:%S")}'
+                        )
+                        ON CONFLICT(call_id) DO UPDATE SET
+                            caller_id = '{row['caller_id']}',
+                            Agent_id = '{row['agent_id']}',
+                            audio_language = '{lang}',
+                            call_duration = '{row['duration_in_sec']}',
+                            original_transcript = '{row['original_transcript']}',
+                            translated_transcript = '{row['translated_transcript'].replace("'","''")}',
+                            transliterated_transcript = '{row['transliterated_transcript'].replace("'","''")}',
+                            call_timestamp = '{row['call_timestamp']}',
+                            updation_timestamp = '{datetime.now().strftime("%d-%m-%y %H:%M:%S")}';'''
+            try:
+                cursor.execute(query)
+                conn.commit()
+            except Exception as e:
+                print(query)
+                conn.close()
+                print(str(e))
+                return False
+        conn.close()
