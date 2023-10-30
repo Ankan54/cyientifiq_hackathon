@@ -1,0 +1,5 @@
+.env
+transcript_db/
+transcript_json/
+azure_storage.py
+__pycache__
