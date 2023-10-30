@@ -1,6 +1,6 @@
 from batch_transcript import batch_transcript
 from parse_transcript import parse_transcript
-from execute_stored_proc import execute_stored_proc
+#from execute_stored_proc import execute_stored_proc
 import time
 
 
@@ -18,6 +18,10 @@ def main(src_container_sas,dest_container_sas,language):
 
     if batch_transcript_result == False:
         print('Error: Failed creating audio transcript')
+        return False
+
+    if not parse_transcript(batch_transcript_result,language):
+        print('Error: Failed parsing audio transcript')
         return False
 
     return True

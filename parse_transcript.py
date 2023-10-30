@@ -6,6 +6,7 @@ from translate_text import translate_text
 from transliterate_text import transliterate_text
 from parse_transcript_phrases import process_audio_time, parse_phrases
 from call_summary import call_summary_main
+from text_analytics import text_analytics_main
 # from text_analytics import text_analytics_main
 from sql_db import connect_database
 from dotenv import load_dotenv
@@ -67,6 +68,11 @@ def parse_transcript(uid,lang):
 
         trans_dict_list.append(trans_dict)
 
+        print('updating call_phrases table...')
+        if not parse_phrases(json_dict['recognizedPhrases'],filename,lang):
+            print('Error extracting audio phrases')
+            return False
+
     if len(trans_dict_list)>0:
         trans_dict_df = pd.DataFrame(trans_dict_list)
         trans_dict_df['duration_in_sec']= trans_dict_df['duration'].apply(lambda x: process_audio_time(x))
@@ -108,7 +114,9 @@ def parse_transcript(uid,lang):
         if not call_summary_main(trans_dict_df['call_id'].to_list()):
             print('Error Generating Call Summary.')
             return False
-        
-        
 
+        if not text_analytics_main(trans_dict_df['call_id'].to_list()):
+            print('Error analysing transcripts')
+            return False
+        
     return True
