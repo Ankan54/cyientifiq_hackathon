@@ -5,6 +5,7 @@ import os, json, shutil, random
 from translate_text import translate_text
 from transliterate_text import transliterate_text
 from parse_transcript_phrases import process_audio_time, parse_phrases
+from call_summary import call_summary_main
 # from text_analytics import text_analytics_main
 from sql_db import connect_database
 from dotenv import load_dotenv
@@ -76,7 +77,7 @@ def parse_transcript(uid,lang):
 
         for _, row in trans_dict_df.iterrows():
             query= f''' INSERT INTO TBL_call_details (
-                            call_id, caller_id, Agent_id, audio_language, call_duration, original_transcript,
+                            call_id, caller_id, agent_id, audio_language, call_duration, original_transcript,
                             translated_transcript, transliterated_transcript, call_timestamp, updation_timestamp)
                         VALUES (
                             '{row['call_id']}', '{row['caller_id']}', '{row['agent_id']}', '{lang}', '{row['duration_in_sec']}',
@@ -101,4 +102,13 @@ def parse_transcript(uid,lang):
                 conn.close()
                 print(str(e))
                 return False
+            
         conn.close()
+
+        if not call_summary_main(trans_dict_df['call_id'].to_list()):
+            print('Error Generating Call Summary.')
+            return False
+        
+        
+
+    return True
