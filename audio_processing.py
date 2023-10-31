@@ -92,6 +92,6 @@ def audio_processing_main(path):
 
 if __name__ == "__main__":
     #local_path = r"F:\Cyient_Hackathon\recordings\processed"
-    local_path = r"{}".format(os.getenv('COG_SERVICE_REGION'))
+    local_path = r"{}".format(os.getenv('AUDIO_PATH_LOCAL'))
     if not audio_processing_main(local_path):
         print('Error: Process Failed!')

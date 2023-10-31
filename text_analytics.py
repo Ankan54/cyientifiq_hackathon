@@ -57,20 +57,14 @@ def extract_sentiments(call_data):
     cursor= conn.cursor()
     print('updating overall sentiments....')
     for _, row in overall_df.iterrows():
-        query= f''' INSERT INTO TBL_call_details (
-                        call_id, overall_sentiment, positive_sentiment_score,
-                        neutral_sentiment_score, negative_sentiment_score, updation_timestamp)
-                    VALUES (
-                        '{row['call_id']}', N'{row['overall_sentiment']}', {row['positive_sentiment']},
-                        {row['neutral_sentiment']}, {row['negative_sentiment']},
-                        '{datetime.now().strftime("%d-%m-%y %H:%M:%S")}'
-                    )
-                    ON CONFLICT(call_id) DO UPDATE SET
+        query= f''' 
+                    UPDATE TBL_call_details SET
                         overall_sentiment = '{row['overall_sentiment']}',
                         positive_sentiment_score = {row['positive_sentiment']},
                         neutral_sentiment_score = {row['neutral_sentiment']},
                         negative_sentiment_score = {row['negative_sentiment']},
-                        updation_timestamp = '{datetime.now().strftime("%d-%m-%y %H:%M:%S")}';
+                        updation_timestamp = '{datetime.now().strftime("%d-%m-%y %H:%M:%S")}'
+                        WHERE call_id = '{row['call_id']}';
                 '''
         try:
             cursor.execute(query)
@@ -93,15 +87,6 @@ def extract_sentiments(call_data):
                         '{row['neutral_sentiment']}', '{row['negative_sentiment']}',
                         '{datetime.now().strftime("%d-%m-%y %H:%M:%S")}'
                     )
-                    ON CONFLICT(call_id) DO UPDATE SET
-                        phrase_offset = {row['sentence_offset']},
-                        phrase_text = '{row['sentence'].replace("'","''")}',
-                        phrase_length = {row['sentence_length']},
-                        phrase_sentiment = '{row['overall_sentiment']}',
-                        positive_sentiment_score = {row['positive_sentiment']},
-                        negative_sentiment_score = {row['negative_sentiment']},
-                        neutral_sentiment_score = {row['neutral_sentiment']},
-                        updation_timestamp = '{datetime.now().strftime("%d-%m-%y %H:%M:%S")}';
                 '''
         try:
             cursor.execute(query)
@@ -163,14 +148,6 @@ def extract_entities(call_data):
                         {row['offset']}, {row['length']}, {row['confidence_score']},
                         '{datetime.now().strftime("%d-%m-%y %H:%M:%S")}'
                     )
-                    ON CONFLICT(call_id) DO UPDATE SET
-                        entity_text = '{row['entity_text'].replace("'","''")}',
-                        category = '{row['category'].replace("'","''")}',
-                        subcategory = '{row['subcategory'].replace("'","''")}',
-                        offset = {row['offset']},
-                        length = {row['length']},
-                        confidence_score = {row['confidence_score']},
-                        updation_timestamp = '{datetime.now().strftime("%d-%m-%y %H:%M:%S")}';
                 '''
         try:
             cursor.execute(query)
@@ -190,7 +167,7 @@ def text_analytics_main(call_id_list):
     for call_id in call_id_list:
         conn= connect_database()
         cursor= conn.cursor()
-        call_data= cursor.execute(f"select [call_id],[translated_transcript] from [dbo].[TBL_call_details] where call_id = '{call_id}'").fetchall()
+        call_data= cursor.execute(f"select call_id,translated_transcript from TBL_call_details where call_id = '{call_id}'").fetchall()
         conn.close()
 
         if not extract_sentiments(call_data):

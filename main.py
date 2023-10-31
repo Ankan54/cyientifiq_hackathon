@@ -13,6 +13,7 @@ def main(src_container_sas,dest_container_sas,language):
     start_time =time.time()
 
     batch_transcript_result= batch_transcript(src_container_sas,dest_container_sas,language)
+    #batch_transcript_result = 'c8ae4978-08f5-40b8-83aa-5e39382d8b46'
     end_time =time.time()
     print("batch transcription time:", str(end_time-start_time))
 
@@ -29,7 +30,7 @@ def main(src_container_sas,dest_container_sas,language):
 if __name__ == "__main__":
     src_container_sas= ''
     dest_container_sas= ''
-    language= 'hindi'
+    language= 'english'
     try:
         if not main(src_container_sas,dest_container_sas,language):
             raise Exception('Process ended with Error')

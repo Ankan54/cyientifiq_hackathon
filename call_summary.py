@@ -19,7 +19,7 @@ class Call_Details(BaseModel):
     """Information from the transcript"""
     summary: str = Field(description="Provide a concise summary of the transcript within 200 words.")
     followup_required: str = Field(description="Write 'Yes' if the customer wants the agent to followup or if the conversation implies a need to followup, otherwise write 'No'", enum=["Yes","No"])
-    action_items: List = Field(description="Provide a list of action items from the transcript(if any) as applicable for the agent.")
+    action_items: List = Field(description="Provide a list of action items from the transcript (atleast one) as applicable for the agent.")
     keywords: List = Field(description="Provide a list of keywords related to Banking and credit card sales from the transcript.")
 
 prompt = ChatPromptTemplate.from_messages([
@@ -47,8 +47,8 @@ def get_call_summary(call_data):
 
             summary_dict['call_summary']= call_summary_dict['summary']
             summary_dict['followup_required']= call_summary_dict['followup_required']
-            summary_dict['action_items']= call_summary_dict['action_items']
-            summary_dict['keywords']= call_summary_dict['keywords']
+            summary_dict['action_items']= ','.join(call_summary_dict['action_items'])
+            summary_dict['keywords']= ','.join(call_summary_dict['keywords'])
 
             summary_dict_list.append(summary_dict)
         
@@ -66,10 +66,10 @@ def get_call_summary(call_data):
     for _, row in summary_df.iterrows():
         query = f'''
                 UPDATE TBL_call_details
-                SET call_summary = '{row['call_summary']}',
-                    followup_required = {row['followup_required']},
-                    action_items = {row['action_items']},
-                    keywords = {row['keywords']},
+                SET call_summary = '{row['call_summary'].replace("'","''")}',
+                    followup_required = '{row['followup_required']}',
+                    action_items = '{row['action_items'].replace("'","''")}',
+                    keywords = '{row['keywords'].replace("'","''")}',
                     updation_timestamp = '{datetime.now().strftime("%d-%m-%y %H:%M:%S")}'
                 WHERE call_id = '{row['call_id']}';
                 '''

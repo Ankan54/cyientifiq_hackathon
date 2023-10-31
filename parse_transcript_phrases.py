@@ -78,18 +78,7 @@ def parse_phrases(phrase_list,filename,lang):
                     {row['duration_in_sec']}, {row['cross_talk_duration']}, '{row['text']}', 
                     '{row['translated_text'].replace("'","''")}', '{row['transliterated_text'].replace("'","''")}',
                     '{datetime.now().strftime("%d-%m-%y %H:%M:%S")}'
-                )
-                ON CONFLICT(call_id) DO UPDATE SET
-                    speaker = '{row['speaker']}',
-                    phrase_start = {row['start_sec']},
-                    phrase_end = {row['end_sec']},
-                    overlapped = {row['Agent_crossed_Customer']},
-                    phrase_duration = {row['duration_in_sec']},
-                    overlap_duration = {row['cross_talk_duration']},
-                    original_phrase = '{row['text']}',
-                    translated_phrase = '{row['translated_text'].replace("'","''")}',
-                    transliterated_phrase = '{row['transliterated_text'].replace("'","''")}',
-                    updation_timestamp = '{datetime.now().strftime("%d-%m-%y %H:%M:%S")}';
+                );
                 '''
         try:
             cursor.execute(query)
