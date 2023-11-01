@@ -76,8 +76,7 @@ def filter_records():
 
     if keywords:
         keywords = set(keywords.split(','))
-        df_call_records = df_call_records[df_call_records['keywords_list'].apply(lambda x: any(word in x for word in keywords))]
-
+        df_call_records = df_call_records[df_call_records['keywords_list'].apply(lambda x: any(any(word.lower() in phrase.lower().split() for word in keywords) for phrase in x))]
     
     df_filtered = df_call_records[['call_id','caller_id','Agent_Name','audio_language','call_duration','call_timestamp','followup_required']]
     filtered_records = list(df_filtered.to_dict(orient='records'))
