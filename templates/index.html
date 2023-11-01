@@ -6,6 +6,9 @@
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.3.0/css/all.min.css">
     <style>
+         body {
+            background-color: #f2f2f3;
+        }
         .blue-header {
             background-color: #4221b8;
         }
@@ -22,7 +25,7 @@
 </head>
 <body>
     <nav class="navbar navbar-expand-lg navbar-dark blue-header">
-        <a class="navbar-brand" href="#">
+        <a class="navbar-brand" href="{{ url_for('index') }}">
         <img src="{{ url_for('static', filename='logo.png') }}" alt="Logo" class="navbar-logo" width="120" height="60">
             Sales Call Analytics Tool
         </a>
@@ -92,7 +95,7 @@
                     <td>{{ call[3] }}</td>
                     <td>{{ call[4] }}</td>
                     <td>{{ call[6] }}</td>
-                    <td><button class="btn btn-primary" value="{{ call[0] }}" id="btn_call_select">Select</button></td>
+                    <td><button class="btn btn-primary call-select-button" data-call-id="{{ call[0] }}">Select</button></td>
                 </tr>
                 {% endfor %}
             </tbody>
@@ -170,14 +173,46 @@
 
                 const selectCell = document.createElement("td");
                 const selectButton = document.createElement("button");
-                selectButton.className = "btn btn-primary";
-                selectButton.value = call.call_id;
-                selectButton.id = "btn_call_select";
+                selectButton.className = "btn btn-primary call-select-button";
+                selectButton.setAttribute("data-call-id", call.call_id);
+                //selectButton.value = call.call_id;
+                //selectButton.id = "btn_call_select";
                 selectButton.textContent = "Select";
                 selectCell.appendChild(selectButton);
                 row.appendChild(selectCell);
 
                 tableBody.appendChild(row);
+            });
+        };
+
+        document.addEventListener('click', function(event) {
+            if (event.target && event.target.classList.contains('call-select-button')) {
+                // Retrieve the call ID from the 'data-call-id' attribute
+                const callId = event.target.getAttribute('data-call-id');
+
+                // Send the call ID to Flask via AJAX
+                //sendCallIdToFlask(callId);
+                //alert(callId);
+                window.open(`/call_details/${callId}`, '_blank');
+            }
+        });
+
+        function sendCallIdToFlask(callId) {
+            // Create a JSON object with the call ID
+            const data = {
+                call_id: callId
+            };
+
+            // Send a POST request with JSON data to Flask API
+            $.ajax({
+                url: '/call_details',
+                type: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify(data),
+                success: function (response) {
+                    alert(response.message);
+                    // You can handle the response from Flask here
+                }
             });
         };
     </script>

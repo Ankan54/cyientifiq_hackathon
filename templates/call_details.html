@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Call Details</title>
+    <!-- Include necessary CSS and JavaScript files here -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.3.0/css/all.min.css">
+    <style>
+        body {
+            background-color: #f2f2f3;
+        }
+        .blue-header {
+            background-color: #4221b8;
+        }
+        .highlighted-keywords {
+            background-color: rgba(5, 155, 35, 0.725);
+            color: white;
+            padding: 2px 4px; /* Adjust padding for spacing around the keyword */
+            border-radius: 3px; /* Add rounded corners for the highlight */
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark blue-header">
+        <a class="navbar-brand" href="{{ url_for('index') }}">
+            <img src="{{ url_for('static', filename='logo.png') }}" alt="Logo" class="navbar-logo" width="120" height="60">
+                Sales Call Analytics Tool
+        </a>
+        <div class="d-flex ml-auto">
+            <i class="fas fa-user-circle fa-2x mr-2"></i>
+            <span class="navbar-brand">Team Joyful Jedi</span>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="row" style="padding-top: 10px;">
+            <!-- First Card: Customer Details -->
+            <div class="col-md-6">
+                <div class="card" style="height: 220px; margin-bottom: 20px;">
+                    <div class="card-body">
+                        <h4 class="card-title">Customer Details</h4>
+                        <p class="card-text">
+                            {% for call in call_details %}
+                            <b>Name: </b> {{ call.caller_name }}<br>
+                            <b>Contact Number:</b>  {{ call.caller_id }}<br>
+                            <b>Age:</b> {{ call.caller_age }}  &emsp; <b>Gender:</b> {{ call.caller_gender }}<br>
+                            <b>Location:</b> {{ call.Location }} <br>
+                            <b>Assigned Agent: </b> {{ call.Agent_Name }}<br>
+                            <b>Followup Required: </b> 
+                            <span style="color: {% if call.followup_required == 'Yes' %}green{% else %}red{% endif %}; font-weight: bold;">
+                                {{ call.followup_required }}
+                            </span>
+                            {% endfor %}
+                        </p>
+                    </div>
+                </div>
+                <!-- Audio Player -->
+                <div style="padding-top: 10px;">
+                <div style="padding-bottom: 10px; padding-left: 100px;">
+                {% for call in call_details %}
+                <audio controls>
+                    <source src="{{ url_for('static', filename=call.audio_path) }}" type="audio/mpeg">
+                    Your browser does not support the audio element.
+                </audio>
+                {% endfor %}
+                </div>
+                <!-- Table with Audio Transcript -->
+                <h5>Transcript:</h5>
+                <div class="table-responsive" style="max-height: 300px; overflow-y: scroll; width: 95%;">
+                <table class="table table-striped" style="max-height: 300px; overflow-y: scroll;">
+                    <tbody>
+                        {% for call in call_phrases %}
+                        <tr>
+                            <td>{{ call.timestamp }}</td>
+                            <td>{{ call.translated_phrase }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                </div>
+                </div>
+            </div>
+            <!-- Second Card: Call Information -->
+            <div class="col-md-6">
+                <div class="card" style="height: 220px; margin-bottom: 20px;">
+                    <div class="card-body">
+                        <h4 class="card-title">Call Information</h4>
+                        <p class="card-text">
+                            {% for call in call_details %}
+                            <b>Call Timestamp:</b> {{ call.call_timestamp }} &emsp; <b>Call Duration:</b> {{ call.call_duration }}<br>
+                            <b>Call Language:</b> {{ call.audio_language }}<br>
+                            {% endfor %}
+                            <b>Keywords: </b>
+                            {% for key in keywords_list %}   
+                            <span class="highlighted-keywords">{{key }}</span>
+                            {% endfor %}
+                        </p>
+                    </div>
+                </div>
+                <div class="card" style="height: 250px; margin-bottom: 20px;">
+                    <div class="card-body" style="max-height: 250px; overflow-y: auto;">
+                        <h4 class="card-title" style="position: sticky; top: 0; background: white; z-index: 1;">Call Summary</h4>
+                        {% for call in call_details %}
+                        <p class="card-text">
+                            {{ call.call_summary }}
+                        </p>
+                        {% endfor %}
+                    </div>
+                </div>
+                <div class="card" style="height: 180px; margin-bottom: 20px;">
+                    <div class="card-body">
+                        <h4 class="card-title" style="position: sticky; top: 0; background: white; z-index: 1;">Action Items</h4>
+                        <p class="card-text">
+                            <ul>
+                                {% for item in action_items_list %}
+                                    <li>{{ item }}</li>
+                                {% endfor %}
+                            </ul>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row" style="padding-top: 50px;">
+            Add Generative AI features
+        </div>
+    </div>
+
+    <!-- Include necessary JavaScript for audio

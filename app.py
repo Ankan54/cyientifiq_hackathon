@@ -87,5 +87,58 @@ def filter_records():
         'filtered_data': filtered_records
     })
 
+
+@app.route('/call_details/<string:call_id>')
+def call_details(call_id):
+    print('call_id', call_id)
+    call_details_query = f"""
+                SELECT r.call_id, r.caller_id, c.caller_name,c.caller_age, c.caller_gender, c.Location, a.agent_name, r.audio_language,
+                    printf("%02d:%02d:%02d", r.call_duration / 3600, (r.call_duration % 3600) / 60, r.call_duration % 60) as call_duration,
+                    r.call_timestamp, r.followup_required, r.agent_id, r.call_summary, r.keywords, r.audio_path
+                FROM TBL_call_details r 
+                INNER JOIN TBL_raw_Agent a ON r.agent_id = a.agent_id
+				INNER JOIN TBL_raw_customer c ON c.caller_id = r.caller_id
+				where call_id = '{call_id}';
+                """
+    
+    call_phrases_query = f'''
+                        SELECT phrase_start,
+                        printf("%02d:%02d:%02d", phrase_start / 3600, (phrase_start % 3600) / 60, phrase_start % 60) as timestamp,
+                        translated_phrase FROM TBL_call_phrases 
+                        where call_id = '{call_id}' ORDER BY phrase_start;
+                        '''
+    
+    keywords_query = f'''
+                        SELECT keywords from TBL_call_details where call_id = '{call_id}';
+                      '''
+    
+    action_items_query = f'''
+                            SELECT action_items from TBL_call_details where call_id = '{call_id}';
+                          '''
+
+
+    conn = sqlite3.connect('cyient_database.db') 
+    df_call_details = pd.read_sql_query(call_details_query,conn)
+    df_call_phrases = pd.read_sql_query(call_phrases_query,conn)
+    df_keywords = pd.read_sql_query(keywords_query,conn)
+    df_action_items = pd.read_sql_query(action_items_query,conn)
+    conn.close()
+
+    call_details = list(df_call_details.to_dict(orient='records'))
+
+    call_phrases = list(df_call_phrases.to_dict(orient='records'))
+
+    df_keywords['keywords_list'] = df_keywords['keywords'].apply(lambda x: set(x.split(',')))
+    keywords_list = list(df_keywords['keywords_list'].values[0])
+
+    df_action_items['items_list'] = df_action_items['action_items'].apply(lambda x: set(x.split(',')))
+    action_items_list = list(df_action_items['items_list'].values[0])
+
+    return render_template('call_details.html', call_details=call_details,
+                           call_phrases=call_phrases, keywords_list=keywords_list, action_items_list=action_items_list)
+
+
+
+
 if __name__ == '__main__':
     app.run(debug=True)
