@@ -68,7 +68,7 @@
                 </div>
                 <!-- Table with Audio Transcript -->
                 <h5>Transcript:</h5>
-                <div class="table-responsive" style="max-height: 300px; overflow-y: scroll; width: 95%;">
+                <div class="table-responsive" style="max-height: 330px; overflow-y: scroll; width: 100%;">
                 <table class="table table-striped" style="max-height: 300px; overflow-y: scroll;">
                     <tbody>
                         {% for call in call_phrases %}
@@ -124,8 +124,51 @@
             </div>
         </div>
         <div class="row" style="padding-top: 50px;">
-            Add Generative AI features
+            <div class="col-md-12">
+            <div class="card" style="height: 200px; margin-bottom: 20px;">
+                <div class="card-body">
+                    <h4 class="card-title">Customer Analysis</h4>
+                    {% for call in call_details %}
+                    <!-- <ul>
+                            <li><b>Budget:</b> {{ call.budget }}</li>
+                            <li><b>Authority:</b> {{ call.authority }}</li>
+                            <li><b>Need:</b> {{ call.need }}</li>
+                            <li><b>Timeline:</b> {{ call.timing }}</li>
+                    </ul> -->
+                    <table class="table table-striped">
+                        <thead class="text-center">
+                            <th>Budget</th>
+                            <th>Authority</th>
+                            <th>Need</th>
+                            <th>Timeline</th>
+                        </thead>
+                        <tbody class="text-center">
+                            <tr>
+                                <td>{{ call.budget }}</td>
+                                <td>{{ call.authority }}</td>
+                                <td>{{ call.need }}</td>
+                                <td>{{ call.timing }}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    {% endfor %}
+                </div>
+            </div>
+            </div>
+        </div>
+        <div class="row" style="padding-top: 50px;">
+            <div class="col-md-12">
+                <div class="card" style=" margin-bottom: 20px;">
+                    <div class="card-body">
+                        <h4 class="card-title">Generate Resource</h4>
+                        <textarea class="form-control" id="sales_resource" rows="10" disabled=True></textarea>
+                        <br>
+                        <button type="button" class="btn btn-success" id="generateButton" onclick="generate_resource()">Generate</button>
+                        <button type="button" class="btn btn-light" id="resetButton" onclick="generate_resource()">Reset</button>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
-
-    <!-- Include necessary JavaScript for audio
+</body>
+</html>
