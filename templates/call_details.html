@@ -100,10 +100,10 @@
                     </div>
                 </div>
                 <div class="card" style="height: 250px; margin-bottom: 20px;">
-                    <div class="card-body" style="max-height: 250px; overflow-y: auto;">
+                    <div class="card-body">
                         <h4 class="card-title" style="position: sticky; top: 0; background: white; z-index: 1;">Call Summary</h4>
                         {% for call in call_details %}
-                        <p class="card-text">
+                        <p class="card-text" style="max-height: 180px; overflow-y: auto;">
                             {{ call.call_summary }}
                         </p>
                         {% endfor %}

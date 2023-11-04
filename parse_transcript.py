@@ -1,7 +1,8 @@
 from azure.storage.blob import BlobServiceClient, BlobClient, ContainerClient, __version__
 from datetime import datetime
 import pandas as pd
-import os, json, shutil, random
+import os, json, shutil
+from customer_analysis import cust_analysis_main
 from translate_text import translate_text
 from transliterate_text import transliterate_text
 from parse_transcript_phrases import process_audio_time, parse_phrases
@@ -112,6 +113,10 @@ def parse_transcript(uid,lang):
         conn.close()
 
         if not call_summary_main(trans_dict_df['call_id'].to_list()):
+            print('Error Generating Call Summary.')
+            return False
+
+        if not cust_analysis_main(trans_dict_df['call_id'].to_list()):
             print('Error Generating Call Summary.')
             return False
 
