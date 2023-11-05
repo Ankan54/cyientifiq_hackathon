@@ -20,6 +20,19 @@
             padding: 2px 4px; /* Adjust padding for spacing around the keyword */
             border-radius: 3px; /* Add rounded corners for the highlight */
         }
+        input[type="range"] {
+            width: 100%;
+        }
+
+        /* Position the value span to the right of the slider */
+        .slider-container {
+            display: flex;
+            align-items: center;
+        }
+
+        .slider-value {
+            margin-left: 10px; /* Adjust the margin as needed */
+        }
     </style>
 </head>
 <body>
@@ -129,12 +142,6 @@
                 <div class="card-body">
                     <h4 class="card-title">Customer Analysis</h4>
                     {% for call in call_details %}
-                    <!-- <ul>
-                            <li><b>Budget:</b> {{ call.budget }}</li>
-                            <li><b>Authority:</b> {{ call.authority }}</li>
-                            <li><b>Need:</b> {{ call.need }}</li>
-                            <li><b>Timeline:</b> {{ call.timing }}</li>
-                    </ul> -->
                     <table class="table table-striped">
                         <thead class="text-center">
                             <th>Budget</th>
@@ -161,14 +168,83 @@
                 <div class="card" style=" margin-bottom: 20px;">
                     <div class="card-body">
                         <h4 class="card-title">Generate Resource</h4>
+                        <div class="row" style="padding-top: 10px;">
+                            <div class="form-group col-md-3">
+                                <label for="topic"><b>Topic:</b></label>
+                                <select class="form-control form-control-medium" id="topic">
+                                    <option value="followup_mail">Followup Mail</option>
+                                    <option value="sales_pitch">Sales Pitch</option>
+                                </select>
+                            </div>
+                            <div class="form-group col-md-3">
+                                <label for="word_limit"><b>Word Limit:</b></label>
+                                <input class="form-control form-control-medium" type="number" min="0" max="200" id="word_limit" value=100>
+                            </div>
+                            <div class="form-group col-md-3">
+                                <label for="slider"><b>Temperature:</b></label>
+                                <div class="slider-container">
+                                    <input class="form-control form-control-medium" type="range" min="0" max="1" step="0.1" value="0.5" id="slider">
+                                    <span class="slider-value" id="sliderValue">0.5</span>
+                                </div>
+                            </div>
+                        </div>
+                        <label for="remarks"><b>Remarks:</b></label>
+                        <input class="form-control form-control-large" type="text" placeholder="Add any additional information" id="remarks"><br>
                         <textarea class="form-control" id="sales_resource" rows="10" disabled=True></textarea>
                         <br>
                         <button type="button" class="btn btn-success" id="generateButton" onclick="generate_resource()">Generate</button>
-                        <button type="button" class="btn btn-light" id="resetButton" onclick="generate_resource()">Reset</button>
+                        <button type="button" class="btn btn-light" id="resetButton" onclick="reset()">Reset</button>
                     </div>
                 </div>
             </div>
         </div>
     </div>
+    <!-- Modal -->
+    <div class="modal fade" id="loadingModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-body text-center">
+            <h5 class="modal-title mb-3">Please wait while the response is being generated. It will take few minutes</h5>
+            <div class="spinner-border text-primary mb-3" role="status">
+                <span class="sr-only">Loading...</span>
+            </div>
+            </div>
+        </div>
+        </div>
+    </div>
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
+	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script>
+        // Get the range input element and the output element
+        var slider = document.getElementById("slider");
+        var output = document.getElementById("sliderValue");
+
+        // Display the default value on page load
+        output.innerHTML = slider.value;
+
+        // Update the value displayed when the slider is moved
+        slider.oninput = function() {
+            output.innerHTML = this.value;
+        }
+    </script>
+    <script>
+        function generate_resource(){
+            const loadingModal = $('#loadingModal');
+            const topic = $('#topic').val();
+            const word_limit = $('#word_limit').val();
+            const sliderValue = $('#slider').val();
+            const remarks = $('#remarks').val();
+            
+            loadingModal.modal('show')
+            // Simulate a loading delay (you can replace this with your actual loading logic)
+            setTimeout(function () {
+                loadingModal.modal('hide');
+            }, 2000); // Adjust the delay (in milliseconds) as needed
+
+            $('#sales_resource').val(topic + "\n" + word_limit + "\n" + sliderValue + "\n" + remarks);
+        };
+    </script>
 </body>
 </html>
