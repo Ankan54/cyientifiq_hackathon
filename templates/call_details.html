@@ -244,6 +244,16 @@
             }, 2000); // Adjust the delay (in milliseconds) as needed
 
             $('#sales_resource').val(topic + "\n" + word_limit + "\n" + sliderValue + "\n" + remarks);
+            $('#sales_resource').prop('disabled', false);
+        };
+
+        function reset(){
+            $('#sales_resource').val("");
+            $('#sales_resource').prop('disabled', true);
+            $('#word_limit').val("100");
+            $('#slider').val("0.5");
+            $('#sliderValue').text("0.5");
+            $('#remarks').val("");
         };
     </script>
 </body>
