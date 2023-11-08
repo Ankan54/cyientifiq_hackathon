@@ -1,9 +1,11 @@
 from flask import Flask, render_template, request, jsonify
 import pandas as pd
-import sqlite3
+import sqlite3, openai, os
+from dotenv import load_dotenv
+load_dotenv()
 
 app = Flask(__name__)
-
+openai.api_key = os.getenv('OPENAI_API_KEY')
 
 def get_agents():
     conn = sqlite3.connect('cyient_database.db') 
@@ -88,13 +90,93 @@ def filter_records():
     })
 
 
+@app.route('/generate_resource', methods=['POST'])
+def generate_resource():
+    data = request.get_json()
+    topic = data.get('topic')
+    word_limit = data.get('word_limit')
+    temperature = data.get('temperature')
+    remarks = data.get('remarks')
+    call_id = data.get('call_id')
+
+    prompt_template = '''
+                        Role: You are a AI assistant with expertise in credit card sales.
+                        Job Description: You have been provided the transcript of a sales call between a customer and sales agent regarding credit card sales.
+                        You also have been provided with the customer details, their BANT analysis and overall sentiment of the call. 
+                        You need to write personalised text on the topic as mentioned below within the given word limit.
+
+                        Topic: {topic_name}
+                        Customer Name: {cust_name}
+                        Customer Age: {cust_age}
+                        Customer Gender: {cust_gender}
+                        Customer Location: {cust_location}
+
+                        Call Transcript: {call_transcript}
+                        Call Duration in Second: {call_duration}
+                        Call Sentiment: {call_sentiment}
+
+                        Customer Budget: {cust_budget}
+                        Customer Authority: {cust_authority}
+                        Customer Need: {cust_need}
+                        Customer Timeline: {cust_timing}
+                        
+                        Additional Information: {remarks}
+
+                        Word Limit: {word_limit}
+
+                        Answer:
+                    '''
+    
+    call_details_query = f'''
+                         select r.call_id, r.caller_id,c.caller_name, c.Location, c.caller_age, c.caller_gender, r.call_duration,
+                         r.budget, r.need, r.authority, r.timing, r.overall_sentiment, r.translated_transcript
+                         FROM TBL_call_details r inner JOIN TBL_raw_customer c on r.caller_id = c.caller_id 
+                         where call_id = '{call_id}';
+                         '''
+    conn = sqlite3.connect('cyient_database.db') 
+    cursor = conn.cursor()
+    result = cursor.execute(call_details_query).fetchall()
+    conn.close()
+
+    prompt = prompt_template.format(topic_name= topic,
+                                    cust_name= result[0][2],
+                                    cust_age= result[0][4],
+                                    cust_gender= result[0][5], 
+                                    cust_location= result[0][3],
+                                    call_transcript= result[0][12],
+                                    call_duration= result[0][6],
+                                    call_sentiment=result[0][11],
+                                    cust_budget= result[0][7],
+                                    cust_authority= result[0][9],
+                                    cust_need= result[0][8],
+                                    cust_timing= result[0][10],
+                                    remarks= remarks if remarks else 'Not Mentioned',
+                                    word_limit=word_limit)
+
+    response = openai.Completion.create(model="text-davinci-003",
+                                        prompt= prompt,
+                                        temperature= float(temperature),
+                                        max_tokens=2000,
+                                        top_p=1,
+                                        frequency_penalty=0,
+                                        presence_penalty=0)
+
+    output = response['choices'][0]['text']
+
+    return jsonify({
+        "message": "Generated {}".format(topic),
+        "output": output
+    })
+
+
 @app.route('/call_details/<string:call_id>')
 def call_details(call_id):
     print('call_id', call_id)
     call_details_query = f"""
                 SELECT r.call_id, r.caller_id, c.caller_name,c.caller_age, c.caller_gender, c.Location, a.agent_name, r.audio_language,
                     printf("%02d:%02d:%02d", r.call_duration / 3600, (r.call_duration % 3600) / 60, r.call_duration % 60) as call_duration,
-                    r.call_timestamp, r.followup_required, r.agent_id, r.call_summary, r.keywords, r.audio_path
+                    r.call_timestamp, r.followup_required, r.agent_id, r.call_summary, r.keywords, r.audio_path,
+                    r.budget, r.authority, r.need, r.timing
                 FROM TBL_call_details r 
                 INNER JOIN TBL_raw_Agent a ON r.agent_id = a.agent_id
 				INNER JOIN TBL_raw_customer c ON c.caller_id = r.caller_id

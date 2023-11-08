@@ -172,8 +172,8 @@
                             <div class="form-group col-md-3">
                                 <label for="topic"><b>Topic:</b></label>
                                 <select class="form-control form-control-medium" id="topic">
-                                    <option value="followup_mail">Followup Mail</option>
-                                    <option value="sales_pitch">Sales Pitch</option>
+                                    <option value="Followup Mail">Followup Mail</option>
+                                    <option value="Sales Pitch">Sales Pitch</option>
                                 </select>
                             </div>
                             <div class="form-group col-md-3">
@@ -237,14 +237,39 @@
             const sliderValue = $('#slider').val();
             const remarks = $('#remarks').val();
             
-            loadingModal.modal('show')
-            // Simulate a loading delay (you can replace this with your actual loading logic)
-            setTimeout(function () {
-                loadingModal.modal('hide');
-            }, 2000); // Adjust the delay (in milliseconds) as needed
+            const data = {
+                topic: topic,
+                word_limit: word_limit,
+                temperature: sliderValue,
+                remarks: remarks,
+                call_id: window.location.pathname.split('/')[2]
+            };
+            
+            // loadingModal.modal('show')
+            // $('#sales_resource').prop('disabled', true);
 
-            $('#sales_resource').val(topic + "\n" + word_limit + "\n" + sliderValue + "\n" + remarks);
-            $('#sales_resource').prop('disabled', false);
+            $.ajax({
+                 url: '/generate_resource',
+                 type: 'POST',
+                 contentType: 'application/json',
+                 data: JSON.stringify(data),
+                 beforeSend: function() {
+                    loadingModal.modal('show');
+                },
+                 success: function (response) {
+                    $('#sales_resource').val(response.output);
+                    $('#sales_resource').prop('disabled', false);
+                    loadingModal.modal('hide');
+                    alert(response.message);
+                 },
+				error: function(xhr, textStatus, errorThrown) {
+                    loadingModal.modal('hide');
+					alert("Error:", errorThrown);
+				},
+                complete: function() {
+                    loadingModal.modal('hide');
+                }
+             });
         };
 
         function reset(){
